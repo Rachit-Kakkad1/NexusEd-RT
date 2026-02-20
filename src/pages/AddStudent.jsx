@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import AnimatedLayout from '../components/AnimatedLayout';
 import ToastContainer, { useToast } from '../components/Toast';
@@ -38,6 +38,7 @@ function validateForm(data) {
 }
 
 export default function AddStudent() {
+    const location = useLocation();
     const [formData, setFormData] = useState({ ...initialFormData });
     const [errors, setErrors] = useState({});
     const [students, setStudents] = useState([]);
@@ -45,6 +46,7 @@ export default function AddStudent() {
     const [editingId, setEditingId] = useState(null);
     const { toasts, addToast, removeToast } = useToast();
 
+    // Load students from localStorage on mount
     useEffect(() => {
         try {
             const stored = localStorage.getItem('students');
@@ -58,6 +60,23 @@ export default function AddStudent() {
             setStudents([]);
         }
     }, []);
+
+    // If arriving from My Students "Edit" button, pre-populate the form
+    useEffect(() => {
+        const editStudent = location.state?.editStudent;
+        if (editStudent && editStudent.id) {
+            setEditingId(editStudent.id);
+            setFormData({
+                name: editStudent.name || '',
+                email: editStudent.email || '',
+                phone: editStudent.phone || '',
+                gender: editStudent.gender || 'Male',
+            });
+            setErrors({});
+            // Clear the state so refresh doesn't re-trigger
+            window.history.replaceState({}, '');
+        }
+    }, [location.state]);
 
     function syncLocalStorage(updatedStudents) {
         try {
