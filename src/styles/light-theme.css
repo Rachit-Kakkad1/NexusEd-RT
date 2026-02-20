@@ -1,0 +1,96 @@
+/* ============================================
+   Light Theme — Override Dark Variables
+   ============================================ */
+[data-theme="light"] {
+    /* Primary Palette — same brand colors */
+    --color-primary: #7c3aed;
+    --color-primary-light: #6d28d9;
+    --color-primary-dark: #5b21b6;
+    --color-primary-glow: rgba(124, 58, 237, 0.15);
+
+    /* Accent */
+    --color-accent: #0891b2;
+    --color-accent-light: #06b6d4;
+    --color-accent-glow: rgba(6, 182, 212, 0.12);
+
+    /* Tertiary */
+    --color-tertiary-glow: rgba(236, 72, 153, 0.1);
+
+    /* Semantic */
+    --color-success: #059669;
+    --color-success-light: #10b981;
+    --color-success-bg: rgba(5, 150, 105, 0.08);
+    --color-error: #e11d48;
+    --color-error-light: #f43f5e;
+    --color-error-bg: rgba(225, 29, 72, 0.06);
+
+    /* Neutrals — Light Surface */
+    --color-bg: #f8fafc;
+    --color-bg-secondary: #f1f5f9;
+    --color-bg-card: rgba(255, 255, 255, 0.8);
+    --color-bg-card-hover: rgba(255, 255, 255, 0.95);
+    --color-bg-glass: rgba(248, 250, 252, 0.85);
+    --color-bg-input: rgba(255, 255, 255, 0.9);
+    --color-bg-elevated: #ffffff;
+    --color-surface: #e2e8f0;
+    --color-border: rgba(148, 163, 184, 0.25);
+    --color-border-hover: rgba(148, 163, 184, 0.4);
+    --color-border-focus: rgba(124, 58, 237, 0.5);
+    --color-text: #0f172a;
+    --color-text-muted: #475569;
+    --color-text-dim: #64748b;
+
+    /* Gradients — slightly adjusted for light bg */
+    --gradient-text: linear-gradient(135deg, #7c3aed, #0891b2);
+
+    /* Shadows — softer for light mode */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.1);
+    --shadow-glow-primary: 0 0 30px rgba(124, 58, 237, 0.12);
+    --shadow-glow-accent: 0 0 30px rgba(6, 182, 212, 0.1);
+    --shadow-neon: 0 0 15px rgba(124, 58, 237, 0.1), 0 0 40px rgba(124, 58, 237, 0.05);
+}
+
+/* Fix animated bg for light mode */
+[data-theme="light"] .animated-bg__orb {
+    opacity: 0.15;
+}
+
+[data-theme="light"] .animated-bg__grid {
+    opacity: 0.03;
+}
+
+[data-theme="light"] .animated-bg__beam {
+    opacity: 0.05;
+}
+
+/* Fix hero aurora for light mode */
+[data-theme="light"] .hero::before {
+    opacity: 0.3;
+}
+
+/* Stat card inner fill for light mode */
+[data-theme="light"] .hero__stat-card::after {
+    background: rgba(255, 255, 255, 0.9);
+}
+
+/* Tilt card adjustments */
+[data-theme="light"] .tilt-card {
+    background: rgba(255, 255, 255, 0.8);
+}
+
+/* Counter card */
+[data-theme="light"] .counter__card {
+    background: rgba(255, 255, 255, 0.8);
+}
+
+/* Form */
+[data-theme="light"] .form {
+    background: rgba(255, 255, 255, 0.8);
+}
+
+/* Toast */
+[data-theme="light"] .toast {
+    background: rgba(255, 255, 255, 0.95);
+}

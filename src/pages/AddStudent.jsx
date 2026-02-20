@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import AnimatedLayout from '../components/AnimatedLayout';
-import { FiAlertCircle, FiCheckCircle, FiStar } from 'react-icons/fi';
+import ToastContainer, { useToast } from '../components/Toast';
+import { FiAlertCircle, FiStar, FiTrash2, FiEdit3, FiUsers } from 'react-icons/fi';
 
 const initialFormData = {
     name: '',
@@ -38,11 +40,11 @@ function validateForm(data) {
 export default function AddStudent() {
     const [formData, setFormData] = useState({ ...initialFormData });
     const [errors, setErrors] = useState({});
-    const [successMessage, setSuccessMessage] = useState('');
     const [students, setStudents] = useState([]);
     const [shake, setShake] = useState(false);
+    const [editingId, setEditingId] = useState(null);
+    const { toasts, addToast, removeToast } = useToast();
 
-    // Re-read localStorage on mount
     useEffect(() => {
         try {
             const stored = localStorage.getItem('students');
@@ -56,6 +58,14 @@ export default function AddStudent() {
             setStudents([]);
         }
     }, []);
+
+    function syncLocalStorage(updatedStudents) {
+        try {
+            localStorage.setItem('students', JSON.stringify(updatedStudents));
+        } catch {
+            addToast('Failed to save. Storage may be full.', 'error');
+        }
+    }
 
     function handleChange(e) {
         const { name, value } = e.target;
@@ -72,10 +82,6 @@ export default function AddStudent() {
                 delete next[name];
                 return next;
             });
-        }
-
-        if (successMessage) {
-            setSuccessMessage('');
         }
     }
 
@@ -98,23 +104,56 @@ export default function AddStudent() {
             return;
         }
 
-        const newStudent = {
-            id: Date.now(),
-            ...trimmedData,
-        };
+        let updatedStudents;
 
-        const updatedStudents = [...students, newStudent];
-        try {
-            localStorage.setItem('students', JSON.stringify(updatedStudents));
-        } catch {
-            setErrors({ form: 'Failed to save. Storage may be full.' });
-            return;
+        if (editingId) {
+            // Update existing student
+            updatedStudents = students.map((s) =>
+                s.id === editingId ? { ...s, ...trimmedData } : s
+            );
+            addToast(`${trimmedData.name} updated successfully!`, 'success');
+            setEditingId(null);
+        } else {
+            // Add new student
+            const newStudent = { id: Date.now(), ...trimmedData };
+            updatedStudents = [...students, newStudent];
+            addToast(`${trimmedData.name} has been added!`, 'success');
         }
 
+        syncLocalStorage(updatedStudents);
         setStudents(updatedStudents);
         setFormData({ ...initialFormData });
         setErrors({});
-        setSuccessMessage(`${newStudent.name} has been added successfully!`);
+    }
+
+    function handleEdit(student) {
+        setEditingId(student.id);
+        setFormData({
+            name: student.name,
+            email: student.email,
+            phone: student.phone,
+            gender: student.gender,
+        });
+        setErrors({});
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function handleCancelEdit() {
+        setEditingId(null);
+        setFormData({ ...initialFormData });
+        setErrors({});
+    }
+
+    function handleDelete(id) {
+        const student = students.find((s) => s.id === id);
+        const updatedStudents = students.filter((s) => s.id !== id);
+        syncLocalStorage(updatedStudents);
+        setStudents(updatedStudents);
+        if (editingId === id) {
+            setEditingId(null);
+            setFormData({ ...initialFormData });
+        }
+        addToast(`${student?.name || 'Student'} removed.`, 'info');
     }
 
     return (
@@ -134,21 +173,6 @@ export default function AddStudent() {
                     </motion.header>
 
                     <div className="form-container">
-                        <AnimatePresence>
-                            {successMessage && (
-                                <motion.div
-                                    className="success-message"
-                                    role="status"
-                                    initial={{ opacity: 0, y: -8 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -8 }}
-                                    transition={{ duration: 0.25 }}
-                                >
-                                    <FiCheckCircle size={16} /> {successMessage}
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-
                         <motion.form
                             className="form"
                             onSubmit={handleSubmit}
@@ -166,6 +190,21 @@ export default function AddStudent() {
                                 delay: shake ? 0 : 0.15,
                             }}
                         >
+                            {editingId && (
+                                <motion.div
+                                    className="form__editing-banner"
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                >
+                                    <FiEdit3 size={14} />
+                                    <span>Editing student — </span>
+                                    <button type="button" className="form__cancel-edit" onClick={handleCancelEdit}>
+                                        Cancel
+                                    </button>
+                                </motion.div>
+                            )}
+
                             {/* Name */}
                             <div className="form__group">
                                 <label htmlFor="name" className="form__label">
@@ -309,7 +348,7 @@ export default function AddStudent() {
                                 whileHover={{ y: -2, boxShadow: '0 0 50px rgba(124,58,237,0.3)' }}
                                 whileTap={{ scale: 0.97 }}
                             >
-                                <FiStar size={16} /> Add Student
+                                <FiStar size={16} /> {editingId ? 'Update Student' : 'Add Student'}
                             </motion.button>
                         </motion.form>
 
@@ -329,9 +368,10 @@ export default function AddStudent() {
                                     {[...students].reverse().map((student) => (
                                         <motion.div
                                             key={student.id}
-                                            className="recent-student-card"
+                                            className={`recent-student-card${editingId === student.id ? ' recent-student-card--editing' : ''}`}
                                             initial={{ opacity: 0, x: -16 }}
                                             animate={{ opacity: 1, x: 0 }}
+                                            exit={{ opacity: 0, x: 40, scale: 0.9 }}
                                             transition={{ duration: 0.3 }}
                                             layout
                                         >
@@ -346,14 +386,49 @@ export default function AddStudent() {
                                                     <span>{student.gender}</span>
                                                 </div>
                                             </div>
+                                            <div className="recent-student-card__actions">
+                                                <motion.button
+                                                    className="recent-student-card__btn recent-student-card__btn--edit"
+                                                    onClick={() => handleEdit(student)}
+                                                    aria-label={`Edit ${student.name}`}
+                                                    whileHover={{ scale: 1.1 }}
+                                                    whileTap={{ scale: 0.9 }}
+                                                >
+                                                    <FiEdit3 size={15} />
+                                                </motion.button>
+                                                <motion.button
+                                                    className="recent-student-card__btn recent-student-card__btn--delete"
+                                                    onClick={() => handleDelete(student.id)}
+                                                    aria-label={`Delete ${student.name}`}
+                                                    whileHover={{ scale: 1.1 }}
+                                                    whileTap={{ scale: 0.9 }}
+                                                >
+                                                    <FiTrash2 size={15} />
+                                                </motion.button>
+                                            </div>
                                         </motion.div>
                                     ))}
                                 </AnimatePresence>
                             </motion.section>
                         )}
+
+                        {/* CTA to view all students */}
+                        {students.length > 0 && (
+                            <motion.div
+                                style={{ textAlign: 'center', marginTop: 'var(--space-6)' }}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: 0.4 }}
+                            >
+                                <Link to="/my-students" className="cta-button">
+                                    <FiUsers size={16} /> View All My Students
+                                </Link>
+                            </motion.div>
+                        )}
                     </div>
                 </div>
             </div>
+            <ToastContainer toasts={toasts} removeToast={removeToast} />
         </AnimatedLayout>
     );
 }

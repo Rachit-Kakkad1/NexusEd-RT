@@ -4,6 +4,7 @@ import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Students from './pages/Students';
 import AddStudent from './pages/AddStudent';
+import MyStudents from './pages/MyStudents';
 import Counter from './pages/Counter';
 
 function AnimatedBackground() {
@@ -46,6 +47,7 @@ export default function App() {
               <Route path="/" element={<Home />} />
               <Route path="/students" element={<Students />} />
               <Route path="/add" element={<AddStudent />} />
+              <Route path="/my-students" element={<MyStudents />} />
               <Route path="/counter" element={<Counter />} />
             </Routes>
           </AnimatePresence>

@@ -1,10 +1,31 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import AnimatedLayout from '../components/AnimatedLayout';
 import { FiMinus, FiPlus, FiRotateCcw } from 'react-icons/fi';
 
+function getStoredCount() {
+    try {
+        const stored = localStorage.getItem('counter');
+        if (stored !== null) {
+            const num = parseInt(stored, 10);
+            return Number.isFinite(num) && num >= 0 ? num : 0;
+        }
+    } catch {
+        /* ignore */
+    }
+    return 0;
+}
+
 export default function Counter() {
-    const [count, setCount] = useState(0);
+    const [count, setCount] = useState(getStoredCount);
+
+    useEffect(() => {
+        try {
+            localStorage.setItem('counter', String(count));
+        } catch {
+            /* storage full */
+        }
+    }, [count]);
 
     function increment() {
         setCount((prev) => prev + 1);

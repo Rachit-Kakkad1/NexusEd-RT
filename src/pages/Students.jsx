@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import AnimatedLayout from '../components/AnimatedLayout';
 import TiltCard from '../components/TiltCard';
 import { HiEnvelope, HiPhone } from 'react-icons/hi2';
-import { FiAlertTriangle } from 'react-icons/fi';
+import { FiAlertTriangle, FiSearch } from 'react-icons/fi';
 
 const API_URL = 'https://jsonplaceholder.typicode.com/users';
 
@@ -32,6 +32,7 @@ export default function Students() {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
         const controller = new AbortController();
@@ -62,6 +63,13 @@ export default function Students() {
         return () => controller.abort();
     }, []);
 
+    // Derived filtered list — never mutates original
+    const filteredUsers = searchQuery.trim()
+        ? users.filter((u) =>
+            u.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
+        )
+        : users;
+
     function getInitials(name) {
         return name
             .split(' ')
@@ -86,6 +94,26 @@ export default function Students() {
                             Fetched from the JSONPlaceholder API — first 6 records
                         </p>
                     </motion.header>
+
+                    {/* Search Bar */}
+                    {!loading && !error && (
+                        <motion.div
+                            className="search-bar"
+                            initial={{ opacity: 0, y: 12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.4, delay: 0.2 }}
+                        >
+                            <FiSearch className="search-bar__icon" size={18} />
+                            <input
+                                type="text"
+                                className="search-bar__input"
+                                placeholder="Search students by name..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                aria-label="Search students by name"
+                            />
+                        </motion.div>
+                    )}
 
                     {/* Loading State */}
                     {loading && (
@@ -116,38 +144,51 @@ export default function Students() {
 
                     {/* Success State */}
                     {!loading && !error && (
-                        <div className="card-grid">
-                            {users.map((user, index) => (
+                        <>
+                            {filteredUsers.length === 0 ? (
                                 <motion.div
-                                    key={user.id}
-                                    custom={index}
-                                    variants={cardVariants}
-                                    initial="hidden"
-                                    animate="visible"
+                                    className="empty-search"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
                                 >
-                                    <TiltCard className="card">
-                                        <div className="card__avatar" aria-hidden="true">
-                                            {getInitials(user.name)}
-                                        </div>
-                                        <h2 className="card__name">{user.name}</h2>
-                                        <div className="card__info">
-                                            <div className="card__info-row">
-                                                <span className="card__info-icon" aria-hidden="true">
-                                                    <HiEnvelope size={16} />
-                                                </span>
-                                                <span>{user.email}</span>
-                                            </div>
-                                            <div className="card__info-row">
-                                                <span className="card__info-icon" aria-hidden="true">
-                                                    <HiPhone size={16} />
-                                                </span>
-                                                <span>{user.phone}</span>
-                                            </div>
-                                        </div>
-                                    </TiltCard>
+                                    <FiSearch size={40} />
+                                    <p>No students match "{searchQuery}"</p>
                                 </motion.div>
-                            ))}
-                        </div>
+                            ) : (
+                                <div className="card-grid">
+                                    {filteredUsers.map((user, index) => (
+                                        <motion.div
+                                            key={user.id}
+                                            custom={index}
+                                            variants={cardVariants}
+                                            initial="hidden"
+                                            animate="visible"
+                                        >
+                                            <TiltCard className="card">
+                                                <div className="card__avatar" aria-hidden="true">
+                                                    {getInitials(user.name)}
+                                                </div>
+                                                <h2 className="card__name">{user.name}</h2>
+                                                <div className="card__info">
+                                                    <div className="card__info-row">
+                                                        <span className="card__info-icon" aria-hidden="true">
+                                                            <HiEnvelope size={16} />
+                                                        </span>
+                                                        <span>{user.email}</span>
+                                                    </div>
+                                                    <div className="card__info-row">
+                                                        <span className="card__info-icon" aria-hidden="true">
+                                                            <HiPhone size={16} />
+                                                        </span>
+                                                        <span>{user.phone}</span>
+                                                    </div>
+                                                </div>
+                                            </TiltCard>
+                                        </motion.div>
+                                    ))}
+                                </div>
+                            )}
+                        </>
                     )}
                 </div>
             </div>
